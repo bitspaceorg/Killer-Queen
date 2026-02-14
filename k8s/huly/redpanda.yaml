@@ -1,0 +1,73 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: huly-redpanda
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: huly-redpanda
+  template:
+    metadata:
+      labels:
+        app: huly-redpanda
+    spec:
+      containers:
+        - name: redpanda
+          image: docker.redpanda.com/redpandadata/redpanda:v24.3.6
+          args:
+            - redpanda
+            - start
+            - --kafka-addr internal://0.0.0.0:9092
+            - --advertise-kafka-addr internal://redpanda:9092
+            - --pandaproxy-addr internal://0.0.0.0:8082
+            - --advertise-pandaproxy-addr internal://redpanda:8082
+            - --schema-registry-addr internal://0.0.0.0:8081
+            - --rpc-addr 0.0.0.0:33145
+            - --advertise-rpc-addr redpanda:33145
+            - --mode dev-container
+            - --smp 1
+            - --default-log-level=info
+          ports:
+            - name: kafka
+              containerPort: 9092
+            - name: proxy
+              containerPort: 8082
+            - name: schema
+              containerPort: 8081
+          volumeMounts:
+            - name: redpanda-data
+              mountPath: /var/lib/redpanda/data
+      volumes:
+        - name: redpanda-data
+          persistentVolumeClaim:
+            claimName: huly-redpanda-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redpanda
+spec:
+  selector:
+    app: huly-redpanda
+  ports:
+    - name: kafka
+      port: 9092
+      targetPort: 9092
+    - name: proxy
+      port: 8082
+      targetPort: 8082
+    - name: schema
+      port: 8081
+      targetPort: 8081
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: huly-redpanda-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi

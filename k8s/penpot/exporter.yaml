@@ -1,0 +1,74 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: penpot-exporter
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: penpot-exporter
+  template:
+    metadata:
+      labels:
+        app: penpot-exporter
+    spec:
+      initContainers:
+        - name: install-fonts
+          image: bitnami/minideb:latest
+          command:
+            - sh
+            - -c
+            - |
+              apt-get update && \
+              apt-get install -y fonts-dejavu fonts-noto fonts-noto-color-emoji && \
+              cp -r /usr/share/fonts/* /fonts
+          volumeMounts:
+            - name: fonts
+              mountPath: /fonts
+      containers:
+        - name: penpot-exporter
+          securityContext:
+            readOnlyRootFilesystem: false
+          image: penpotapp/exporter:2.11.1
+          resources:
+            requests:
+              memory: "4Gi"
+              cpu: "1500m"
+            limits:
+              memory: "8Gi"
+              cpu: "3"
+          ports:
+            - containerPort: 6061
+          env:
+            - name: PENPOT_BROWSER_TIMEOUT
+              value: "60000"
+            - name: PENPOT_BROWSER_NAVIGATION_TIMEOUT
+              value: "60000"
+            - name: PENPOT_PUBLIC_URI
+              value: "http://penpot-frontend.kq.svc.cluster.local:8080"
+            - name: PENPOT_REDIS_URI
+              value: "redis://penpot-redis.kq.svc.cluster.local:6379/0"
+            - name: PENPOT_EXPORTER_RESOURCES_FONTS_DIR
+              value: "/usr/share/fonts"
+          volumeMounts:
+            - name: fonts
+              mountPath: /usr/share/fonts
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: fonts
+          emptyDir: {}
+        - name: tmp
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: penpot-exporter
+spec:
+  selector:
+    app: penpot-exporter
+  ports:
+    - port: 6061
+      targetPort: 6061
+      protocol: TCP

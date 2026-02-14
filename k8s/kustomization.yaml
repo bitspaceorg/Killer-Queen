@@ -1,0 +1,45 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: kq
+
+resources:
+  - namespace.yaml
+  - secrets.yaml
+
+  # Cluster
+  - cluster/issuer.yaml
+
+  # Ingress
+  - ingress/rules.yaml
+
+  # PostgreSQL
+  - postgres/configmap.yaml
+  - postgres/pvc.yaml
+  - postgres/service.yaml
+  - postgres/deployment.yaml
+
+  # Penpot
+  - penpot/pvc.yaml
+  - penpot/redis.yaml
+  - penpot/backend.yaml
+  - penpot/exporter.yaml
+  - penpot/frontend.yaml
+
+  # Huly - Infrastructure
+  - huly/cockroachdb.yaml
+  - huly/elasticsearch.yaml
+  - huly/minio.yaml
+  - huly/redpanda.yaml
+
+  # Huly - App services
+  - huly/nginx.yaml
+  - huly/front.yaml
+  - huly/transactor.yaml
+  - huly/account.yaml
+  - huly/collaborator.yaml
+  - huly/workspace.yaml
+  - huly/fulltext.yaml
+  - huly/stats.yaml
+  - huly/kvs.yaml
+  - huly/rekoni.yaml

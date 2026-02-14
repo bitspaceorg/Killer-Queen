@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: huly-workspace
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: huly-workspace
+  template:
+    metadata:
+      labels:
+        app: huly-workspace
+    spec:
+      containers:
+        - name: workspace
+          image: hardcoreeng/workspace:v0.7.353
+          env:
+            - name: SERVER_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: kq-huly-secrets
+                  key: SECRET
+            - name: DB_URL
+              value: "postgres://huly@cockroach:26257/huly?sslmode=disable"
+            - name: TRANSACTOR_URL
+              value: "ws://huly-transactor:3333;wss://huly.bitspace.org.in/_transactor"
+            - name: STORAGE_CONFIG
+              value: "minio|minio?accessKey=minioadmin&secretKey=minioadmin"
+            - name: MODEL_ENABLED
+              value: "*"
+            - name: ACCOUNTS_URL
+              value: "http://huly-account:3000"
+            - name: STATS_URL
+              value: "http://huly-stats:4900"
+            - name: QUEUE_CONFIG
+              value: "redpanda:9092"
+            - name: ACCOUNTS_DB_URL
+              value: "postgres://huly@cockroach:26257/huly?sslmode=disable"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: huly-workspace
+spec:
+  selector:
+    app: huly-workspace
+  ports:
+    - port: 8080
+      targetPort: 8080

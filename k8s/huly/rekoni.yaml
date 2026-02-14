@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: huly-rekoni
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: huly-rekoni
+  template:
+    metadata:
+      labels:
+        app: huly-rekoni
+    spec:
+      containers:
+        - name: rekoni
+          image: hardcoreeng/rekoni-service:v0.7.353
+          ports:
+            - containerPort: 4004
+          env:
+            - name: SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: kq-huly-secrets
+                  key: SECRET
+          resources:
+            limits:
+              memory: "500Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: huly-rekoni
+spec:
+  selector:
+    app: huly-rekoni
+  ports:
+    - port: 4004
+      targetPort: 4004

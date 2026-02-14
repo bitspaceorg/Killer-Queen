@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:15
+          args: ["-c", "listen_addresses=*"]
+          env:
+            - name: PGDATA
+              value: /var/lib/postgresql/data
+            - name: POSTGRES_USER
+              value: bs
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: kq-postgres-credentials
+                  key: POSTGRES_PASSWORD
+            - name: PENPOT_DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: kq-penpot-secrets
+                  key: PENPOT_DATABASE_PASSWORD
+          ports:
+            - containerPort: 5432
+          readinessProbe:
+            exec:
+              command:
+              - pg_isready
+              - -U
+              - bs
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          volumeMounts:
+            - name: pgdata
+              mountPath: /var/lib/postgresql/data
+              subPath: postgres-data
+            - name: init-sql
+              mountPath: /docker-entrypoint-initdb.d/init.sh
+              subPath: init.sh
+      volumes:
+        - name: pgdata
+          persistentVolumeClaim:
+            claimName: pg-pvc
+        - name: init-sql
+          configMap:
+            name: postgres-init-sql

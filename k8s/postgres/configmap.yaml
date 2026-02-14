@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-init-sql
+data:
+  init.sh: |
+    #!/bin/bash
+    set -e
+    psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" <<-EOSQL
+      CREATE USER penpot WITH PASSWORD '${PENPOT_DATABASE_PASSWORD}';
+      CREATE DATABASE penpot OWNER penpot;
+    EOSQL

@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: penpot-frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: penpot-frontend
+  template:
+    metadata:
+      labels:
+        app: penpot-frontend
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: srv1016685
+      containers:
+        - name: penpot-frontend
+          image: penpotapp/frontend:2.11.1
+          ports:
+            - containerPort: 8080
+          env:
+            - name: PENPOT_PUBLIC_URI
+              value: "https://design.bitspace.org.in"
+            - name: PENPOT_BACKEND_URI
+              value: "http://penpot-backend.kq.svc.cluster.local:6060"
+            - name: PENPOT_EXPORTER_URI
+              value: "http://penpot-exporter.kq.svc.cluster.local:6061"
+            - name: PENPOT_FLAGS
+              value: "enable-login-with-password"
+          volumeMounts:
+            - name: penpot-assets
+              mountPath: /opt/data/assets
+              readOnly: true
+      volumes:
+        - name: penpot-assets
+          persistentVolumeClaim:
+            claimName: penpot-assets-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: penpot-frontend
+spec:
+  selector:
+    app: penpot-frontend
+  ports:
+    - port: 8080
+      targetPort: 8080
+      protocol: TCP

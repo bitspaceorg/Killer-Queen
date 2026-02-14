@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: huly-transactor
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: huly-transactor
+  template:
+    metadata:
+      labels:
+        app: huly-transactor
+    spec:
+      containers:
+        - name: transactor
+          image: hardcoreeng/transactor:v0.7.353
+          ports:
+            - containerPort: 3333
+          env:
+            - name: SERVER_PORT
+              value: "3333"
+            - name: SERVER_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: kq-huly-secrets
+                  key: SECRET
+            - name: DB_URL
+              value: "postgres://huly@cockroach:26257/huly?sslmode=disable"
+            - name: STORAGE_CONFIG
+              value: "minio|minio?accessKey=minioadmin&secretKey=minioadmin"
+            - name: FRONT_URL
+              value: "https://huly.bitspace.org.in"
+            - name: ACCOUNTS_URL
+              value: "http://huly-account:3000"
+            - name: FULLTEXT_URL
+              value: "http://huly-fulltext:4700"
+            - name: STATS_URL
+              value: "http://huly-stats:4900"
+            - name: LAST_NAME_FIRST
+              value: "true"
+            - name: QUEUE_CONFIG
+              value: "redpanda:9092"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: huly-transactor
+spec:
+  selector:
+    app: huly-transactor
+  ports:
+    - port: 3333
+      targetPort: 3333

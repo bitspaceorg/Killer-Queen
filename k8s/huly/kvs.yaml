@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: huly-kvs
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: huly-kvs
+  template:
+    metadata:
+      labels:
+        app: huly-kvs
+    spec:
+      containers:
+        - name: kvs
+          image: hardcoreeng/hulykvs:v0.7.353
+          ports:
+            - containerPort: 8094
+          env:
+            - name: HULY_DB_CONNECTION
+              value: "postgres://huly@cockroach:26257/huly?sslmode=disable"
+            - name: HULY_TOKEN_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: kq-huly-secrets
+                  key: SECRET
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: huly-kvs
+spec:
+  selector:
+    app: huly-kvs
+  ports:
+    - port: 8094
+      targetPort: 8094

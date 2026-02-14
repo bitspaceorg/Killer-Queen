@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: huly-fulltext
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: huly-fulltext
+  template:
+    metadata:
+      labels:
+        app: huly-fulltext
+    spec:
+      containers:
+        - name: fulltext
+          image: hardcoreeng/fulltext:v0.7.353
+          ports:
+            - containerPort: 4700
+          env:
+            - name: SERVER_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: kq-huly-secrets
+                  key: SECRET
+            - name: DB_URL
+              value: "postgres://huly@cockroach:26257/huly?sslmode=disable"
+            - name: FULLTEXT_DB_URL
+              value: "http://elastic:9200"
+            - name: ELASTIC_INDEX_NAME
+              value: "huly_storage_index"
+            - name: STORAGE_CONFIG
+              value: "minio|minio?accessKey=minioadmin&secretKey=minioadmin"
+            - name: REKONI_URL
+              value: "http://huly-rekoni:4004"
+            - name: ACCOUNTS_URL
+              value: "http://huly-account:3000"
+            - name: STATS_URL
+              value: "http://huly-stats:4900"
+            - name: QUEUE_CONFIG
+              value: "redpanda:9092"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: huly-fulltext
+spec:
+  selector:
+    app: huly-fulltext
+  ports:
+    - port: 4700
+      targetPort: 4700

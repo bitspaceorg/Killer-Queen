@@ -1,0 +1,71 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: huly-account
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: huly-account
+  template:
+    metadata:
+      labels:
+        app: huly-account
+    spec:
+      containers:
+        - name: account
+          image: hardcoreeng/account:v0.7.353
+          ports:
+            - containerPort: 3000
+          env:
+            - name: SERVER_PORT
+              value: "3000"
+            - name: SERVER_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: kq-huly-secrets
+                  key: SECRET
+            - name: DB_URL
+              value: "postgres://huly@cockroach:26257/huly?sslmode=disable"
+            - name: TRANSACTOR_URL
+              value: "ws://huly-transactor:3333;wss://huly.bitspace.org.in/_transactor"
+            - name: STORAGE_CONFIG
+              value: "minio|minio?accessKey=minioadmin&secretKey=minioadmin"
+            - name: FRONT_URL
+              value: "https://huly.bitspace.org.in"
+            - name: STATS_URL
+              value: "https://huly.bitspace.org.in/_stats"
+            - name: MODEL_ENABLED
+              value: "*"
+            - name: ACCOUNTS_URL
+              value: "https://huly.bitspace.org.in/_accounts"
+            - name: ACCOUNT_PORT
+              value: "3000"
+            - name: QUEUE_CONFIG
+              value: "redpanda:9092"
+            - name: SMTP_HOST
+              value: "mail.bitspace.org.in"
+            - name: SMTP_PORT
+              value: "587"
+            - name: SMTP_USERNAME
+              value: "no-reply@bitspace.org.in"
+            - name: SMTP_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: kq-huly-secrets
+                  key: SMTP_PASSWORD
+            - name: SMTP_FROM
+              value: "no-reply@bitspace.org.in"
+            - name: GUEST_ENABLED
+              value: "true"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: huly-account
+spec:
+  selector:
+    app: huly-account
+  ports:
+    - port: 3000
+      targetPort: 3000

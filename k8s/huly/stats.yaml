@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: huly-stats
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: huly-stats
+  template:
+    metadata:
+      labels:
+        app: huly-stats
+    spec:
+      containers:
+        - name: stats
+          image: hardcoreeng/stats:v0.7.353
+          ports:
+            - containerPort: 4900
+          env:
+            - name: PORT
+              value: "4900"
+            - name: SERVER_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: kq-huly-secrets
+                  key: SECRET
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: huly-stats
+spec:
+  selector:
+    app: huly-stats
+  ports:
+    - port: 4900
+      targetPort: 4900

@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: huly-collaborator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: huly-collaborator
+  template:
+    metadata:
+      labels:
+        app: huly-collaborator
+    spec:
+      containers:
+        - name: collaborator
+          image: hardcoreeng/collaborator:v0.7.353
+          ports:
+            - containerPort: 3078
+          env:
+            - name: COLLABORATOR_PORT
+              value: "3078"
+            - name: SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: kq-huly-secrets
+                  key: SECRET
+            - name: ACCOUNTS_URL
+              value: "http://huly-account:3000"
+            - name: STATS_URL
+              value: "http://huly-stats:4900"
+            - name: STORAGE_CONFIG
+              value: "minio|minio?accessKey=minioadmin&secretKey=minioadmin"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: huly-collaborator
+spec:
+  selector:
+    app: huly-collaborator
+  ports:
+    - port: 3078
+      targetPort: 3078

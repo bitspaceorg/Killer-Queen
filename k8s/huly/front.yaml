@@ -1,0 +1,68 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: huly-front
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: huly-front
+  template:
+    metadata:
+      labels:
+        app: huly-front
+    spec:
+      containers:
+        - name: front
+          image: hardcoreeng/front:v0.7.353
+          ports:
+            - containerPort: 8080
+          env:
+            - name: SERVER_PORT
+              value: "8080"
+            - name: SERVER_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: kq-huly-secrets
+                  key: SECRET
+            - name: ACCOUNTS_URL
+              value: "https://huly.bitspace.org.in/_accounts"
+            - name: ACCOUNTS_URL_INTERNAL
+              value: "http://huly-account:3000"
+            - name: REKONI_URL
+              value: "https://huly.bitspace.org.in/_rekoni"
+            - name: STATS_URL
+              value: "https://huly.bitspace.org.in/_stats"
+            - name: UPLOAD_URL
+              value: "/files"
+            - name: ELASTIC_URL
+              value: "http://elastic:9200"
+            - name: COLLABORATOR_URL
+              value: "wss://huly.bitspace.org.in/_collaborator"
+            - name: GMAIL_URL
+              value: "https://huly.bitspace.org.in/_gmail"
+            - name: CALENDAR_URL
+              value: "https://huly.bitspace.org.in/_calendar"
+            - name: TELEGRAM_URL
+              value: "https://huly.bitspace.org.in/_telegram"
+            - name: LOVE_ENDPOINT
+              value: "https://huly.bitspace.org.in/_love"
+            - name: STORAGE_CONFIG
+              value: "minio|minio?accessKey=minioadmin&secretKey=minioadmin"
+            - name: TITLE
+              value: "Huly - BitSpace"
+            - name: DEFAULT_LANGUAGE
+              value: "en"
+            - name: LAST_NAME_FIRST
+              value: "true"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: huly-front
+spec:
+  selector:
+    app: huly-front
+  ports:
+    - port: 8080
+      targetPort: 8080
