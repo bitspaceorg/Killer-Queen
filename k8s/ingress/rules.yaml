@@ -7,12 +7,15 @@ metadata:
     nginx.ingress.kubernetes.io/proxy-body-size: 1g
     nginx.ingress.kubernetes.io/proxy-request-buffering: "off"
     nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
 spec:
   ingressClassName: nginx
   tls:
     - hosts:
         - design.bitspace.org.in
         - huly.bitspace.org.in
+        - livekit.bitspace.org.in
       secretName: kq-tls-secret
   rules:
     - host: design.bitspace.org.in
@@ -35,3 +38,13 @@ spec:
                 name: huly-nginx
                 port:
                   number: 8080
+    - host: livekit.bitspace.org.in
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: huly-livekit
+                port:
+                  number: 7880

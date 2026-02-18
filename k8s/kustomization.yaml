@@ -43,3 +43,6 @@ resources:
   - huly/stats.yaml
   - huly/kvs.yaml
   - huly/rekoni.yaml
+  - huly/telegram-bot.yaml
+  - huly/livekit.yaml
+  - huly/love.yaml

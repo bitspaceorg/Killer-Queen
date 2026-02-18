@@ -47,6 +47,8 @@ spec:
               value: "https://huly.bitspace.org.in/_telegram"
             - name: LOVE_ENDPOINT
               value: "https://huly.bitspace.org.in/_love"
+            - name: LIVEKIT_WS
+              value: "wss://livekit.bitspace.org.in"
             - name: STORAGE_CONFIG
               value: "minio|minio?accessKey=minioadmin&secretKey=minioadmin"
             - name: TITLE

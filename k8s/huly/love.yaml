@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: huly-love
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: huly-love
+  template:
+    metadata:
+      labels:
+        app: huly-love
+    spec:
+      containers:
+        - name: love
+          image: hardcoreeng/love:v0.7.353
+          ports:
+            - containerPort: 8096
+          env:
+            - name: PORT
+              value: "8096"
+            - name: SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: kq-huly-secrets
+                  key: SECRET
+            - name: ACCOUNTS_URL
+              value: "http://huly-account:3000"
+            - name: DB_URL
+              value: "postgres://huly@cockroach:26257/huly?sslmode=disable"
+            - name: STORAGE_CONFIG
+              value: "minio|minio?accessKey=minioadmin&secretKey=minioadmin"
+            - name: LIVEKIT_HOST
+              value: "wss://livekit.bitspace.org.in"
+            - name: LIVEKIT_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: kq-huly-secrets
+                  key: LIVEKIT_API_KEY
+            - name: LIVEKIT_API_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: kq-huly-secrets
+                  key: LIVEKIT_API_SECRET
+            - name: QUEUE_CONFIG
+              value: "redpanda:9092"
+            - name: QUEUE_REGION
+              value: ""
+            - name: SERVICE_ID
+              value: "love-service"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: huly-love
+spec:
+  selector:
+    app: huly-love
+  ports:
+    - port: 8096
+      targetPort: 8096
